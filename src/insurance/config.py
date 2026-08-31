@@ -40,6 +40,10 @@ class Settings(BaseSettings):
     kafka_bootstrap_servers: str = ""   # outbox publisher
     kafka_topic_prefix: str = "insurance"
     kafka_consumer_group: str = "blueeconomy-insurance"
+    # Producer batching (outbox publisher). Defaults preserve the previous
+    # behavior: linger 0 and the aiokafka default batch size.
+    kafka_linger_ms: int = 0
+    kafka_max_batch_size: int = 16384   # aiokafka/kafka default
 
     # --- OIDC (Keycloak RS256/EdDSA via JWKS) ---
     oidc_jwks_url: str = ""             # https://keycloak/.../certs

@@ -95,9 +95,16 @@ async def add_rate_table(
 
 
 @router.get("")
-async def list_products(request: Request, identity: IdentityDep, session: SessionDep) -> dict[str, Any]:
+async def list_products(
+    request: Request, identity: IdentityDep, session: SessionDep, limit: int = 500
+) -> dict[str, Any]:
     require_policy(request, identity, "product", "read", "INTERNAL")
-    rows = (await session.execute(select(Product).order_by(Product.code, Product.version))).scalars().all()
+    # Bounded catalog read: deterministic (code, version) ordering makes the
+    # cap stable; limit is clamped to a hard ceiling.
+    limit = max(1, min(limit, 5000))
+    rows = (
+        await session.execute(select(Product).order_by(Product.code, Product.version).limit(limit))
+    ).scalars().all()
     return {"products": [_product_view(p) for p in rows]}
 
 
