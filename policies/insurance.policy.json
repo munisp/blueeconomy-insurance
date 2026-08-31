@@ -1,0 +1,248 @@
+{
+  "version": "1.0",
+  "policies": [
+    {
+      "name": "underwriter-manages-products",
+      "roles": ["underwriter"],
+      "resource": "product",
+      "action": "create",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["CONFIDENTIAL"]
+    },
+    {
+      "name": "underwriter-approver-activates-products",
+      "roles": ["underwriter-approver"],
+      "resource": "product",
+      "action": "activate",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["CONFIDENTIAL"]
+    },
+    {
+      "name": "underwriter-manages-rate-tables",
+      "roles": ["underwriter"],
+      "resource": "product",
+      "action": "rate",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["CONFIDENTIAL"]
+    },
+    {
+      "name": "staff-read-products",
+      "roles": ["underwriter", "underwriter-approver", "claims-adjuster", "claims-approver", "auditor"],
+      "resource": "product",
+      "action": "read",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["INTERNAL"]
+    },
+    {
+      "name": "underwriter-creates-quotes",
+      "roles": ["underwriter"],
+      "resource": "quote",
+      "action": "create",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["CONFIDENTIAL"]
+    },
+    {
+      "name": "singlewindow-vas-creates-declaration-quotes",
+      "roles": ["singlewindow-vas"],
+      "resource": "quote",
+      "action": "create",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["CONFIDENTIAL"]
+    },
+    {
+      "name": "staff-read-quotes",
+      "roles": ["underwriter", "underwriter-approver", "auditor"],
+      "resource": "quote",
+      "action": "read",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["INTERNAL"]
+    },
+    {
+      "name": "underwriter-requests-bind",
+      "roles": ["underwriter"],
+      "resource": "quote",
+      "action": "bind",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["CONFIDENTIAL"]
+    },
+    {
+      "name": "underwriter-approver-decides-bind",
+      "roles": ["underwriter-approver"],
+      "resource": "quote",
+      "action": "bind-decide",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["CONFIDENTIAL"]
+    },
+    {
+      "name": "underwriter-issues-policies",
+      "roles": ["underwriter"],
+      "resource": "policy",
+      "action": "issue",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["CONFIDENTIAL"]
+    },
+    {
+      "name": "staff-read-policies",
+      "roles": ["underwriter", "underwriter-approver", "claims-adjuster", "claims-approver", "auditor"],
+      "resource": "policy",
+      "action": "read",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["INTERNAL"]
+    },
+    {
+      "name": "underwriter-endorses-policies",
+      "roles": ["underwriter"],
+      "resource": "policy",
+      "action": "endorse",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["CONFIDENTIAL"]
+    },
+    {
+      "name": "underwriter-approver-cancels-policies",
+      "roles": ["underwriter-approver"],
+      "resource": "policy",
+      "action": "cancel",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["CONFIDENTIAL"]
+    },
+    {
+      "name": "claims-adjuster-files-fnol",
+      "roles": ["claims-adjuster", "underwriter"],
+      "resource": "claim",
+      "action": "create",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["CONFIDENTIAL"]
+    },
+    {
+      "name": "staff-read-claims",
+      "roles": ["claims-adjuster", "claims-approver", "underwriter", "underwriter-approver", "auditor"],
+      "resource": "claim",
+      "action": "read",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["INTERNAL"]
+    },
+    {
+      "name": "claims-adjuster-attaches-documents",
+      "roles": ["claims-adjuster"],
+      "resource": "claim",
+      "action": "document",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["CONFIDENTIAL"]
+    },
+    {
+      "name": "claims-adjuster-proposes-assignment",
+      "roles": ["claims-adjuster"],
+      "resource": "claim",
+      "action": "assign-propose",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["CONFIDENTIAL"]
+    },
+    {
+      "name": "claims-approver-confirms-assignment",
+      "roles": ["claims-approver"],
+      "resource": "claim",
+      "action": "assign-confirm",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["CONFIDENTIAL"]
+    },
+    {
+      "name": "claims-adjuster-proposes-settlement",
+      "roles": ["claims-adjuster"],
+      "resource": "claim",
+      "action": "settle-propose",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["FIDUCIARY_SEGREGATED"]
+    },
+    {
+      "name": "claims-approver-approves-settlement",
+      "roles": ["claims-approver"],
+      "resource": "claim",
+      "action": "settle-approve",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["FIDUCIARY_SEGREGATED"]
+    },
+    {
+      "name": "claims-approver-rejects-claims",
+      "roles": ["claims-approver"],
+      "resource": "claim",
+      "action": "reject",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["CONFIDENTIAL"]
+    },
+    {
+      "name": "finance-officer-records-payouts",
+      "roles": ["finance-officer"],
+      "resource": "claim",
+      "action": "payout",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["FIDUCIARY_SEGREGATED"]
+    },
+    {
+      "name": "isr-feed-ingests-evidence",
+      "roles": ["isr-evidence-feed"],
+      "resource": "integration",
+      "action": "isr-ingest",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["CONFIDENTIAL"]
+    },
+    {
+      "name": "partner-gateway-calls-partners",
+      "roles": ["partner-gateway"],
+      "resource": "partner",
+      "action": "call",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["CONFIDENTIAL"]
+    },
+    {
+      "name": "staff-read-partner-registry",
+      "roles": ["partner-gateway", "underwriter", "auditor"],
+      "resource": "partner",
+      "action": "read",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["INTERNAL"]
+    },
+    {
+      "name": "insurer-aggregator-reads-aggregates",
+      "roles": ["insurer-aggregator"],
+      "resource": "aggregate",
+      "action": "read",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["INTERNAL"]
+    },
+    {
+      "name": "auditor-verifies-audit-chain",
+      "roles": ["auditor"],
+      "resource": "audit",
+      "action": "verify",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["CONFIDENTIAL"]
+    }
+  ]
+}

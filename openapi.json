@@ -1,0 +1,2161 @@
+{
+ "openapi": "3.1.0",
+ "info": {
+  "title": "blueeconomy-insurance",
+  "version": "0.1.0"
+ },
+ "paths": {
+  "/healthz": {
+   "get": {
+    "tags": [
+     "ops"
+    ],
+    "summary": "Healthz",
+    "operationId": "healthz_healthz_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "type": "object",
+         "title": "Response Healthz Healthz Get"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/capabilities": {
+   "get": {
+    "tags": [
+     "ops"
+    ],
+    "summary": "Capabilities",
+    "operationId": "capabilities_v1_capabilities_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "type": "object",
+         "title": "Response Capabilities V1 Capabilities Get"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/audit/verify": {
+   "get": {
+    "tags": [
+     "ops"
+    ],
+    "summary": "Audit Verify",
+    "operationId": "audit_verify_v1_audit_verify_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "type": "object",
+         "title": "Response Audit Verify V1 Audit Verify Get"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/products": {
+   "get": {
+    "tags": [
+     "products"
+    ],
+    "summary": "List Products",
+    "operationId": "list_products_v1_products_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "type": "object",
+         "title": "Response List Products V1 Products Get"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "products"
+    ],
+    "summary": "Create Product",
+    "operationId": "create_product_v1_products_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ProductCreate"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "type": "object",
+         "title": "Response Create Product V1 Products Post"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/products/{code}/versions/{version}/activate": {
+   "post": {
+    "tags": [
+     "products"
+    ],
+    "summary": "Activate Product",
+    "operationId": "activate_product_v1_products__code__versions__version__activate_post",
+    "parameters": [
+     {
+      "name": "code",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Code"
+      }
+     },
+     {
+      "name": "version",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Version"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response Activate Product V1 Products  Code  Versions  Version  Activate Post"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/products/{code}/versions/{version}/rate-tables": {
+   "post": {
+    "tags": [
+     "products"
+    ],
+    "summary": "Add Rate Table",
+    "operationId": "add_rate_table_v1_products__code__versions__version__rate_tables_post",
+    "parameters": [
+     {
+      "name": "code",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Code"
+      }
+     },
+     {
+      "name": "version",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Version"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RateTableCreate"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response Add Rate Table V1 Products  Code  Versions  Version  Rate Tables Post"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "get": {
+    "tags": [
+     "products"
+    ],
+    "summary": "List Rate Tables",
+    "operationId": "list_rate_tables_v1_products__code__versions__version__rate_tables_get",
+    "parameters": [
+     {
+      "name": "code",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Code"
+      }
+     },
+     {
+      "name": "version",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Version"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response List Rate Tables V1 Products  Code  Versions  Version  Rate Tables Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/quotes": {
+   "post": {
+    "tags": [
+     "quotes"
+    ],
+    "summary": "Create Quote",
+    "operationId": "create_quote_v1_quotes_post",
+    "parameters": [
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Idempotency-Key"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/QuoteCreate"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response Create Quote V1 Quotes Post"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/quotes:fromDeclaration": {
+   "post": {
+    "tags": [
+     "quotes"
+    ],
+    "summary": "Quote From Declaration",
+    "description": "Declaration-time attach (NTP VAS model): singlewindow posts the\nplatform declaration shape and receives a bound-ready quote offer.\nDeclaration dedupe: one quote per (declaration_ref, product) pair from a\ngiven source event; replays of the same source_event_id return the\noriginal quote.",
+    "operationId": "quote_from_declaration_v1_quotes_fromDeclaration_post",
+    "parameters": [
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Idempotency-Key"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/FromDeclaration"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response Quote From Declaration V1 Quotes Fromdeclaration Post"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/quotes/{quote_ref}": {
+   "get": {
+    "tags": [
+     "quotes"
+    ],
+    "summary": "Get Quote",
+    "operationId": "get_quote_v1_quotes__quote_ref__get",
+    "parameters": [
+     {
+      "name": "quote_ref",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Quote Ref"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response Get Quote V1 Quotes  Quote Ref  Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/quotes/{quote_ref}:bind": {
+   "post": {
+    "tags": [
+     "quotes"
+    ],
+    "summary": "Request Bind",
+    "description": "Maker: request bind.",
+    "operationId": "request_bind_v1_quotes__quote_ref__bind_post",
+    "parameters": [
+     {
+      "name": "quote_ref",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Quote Ref"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response Request Bind V1 Quotes  Quote Ref  Bind Post"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/quotes/{quote_ref}:bind-decision": {
+   "post": {
+    "tags": [
+     "quotes"
+    ],
+    "summary": "Decide Bind",
+    "description": "Checker: approve or decline. Checker != maker (service + DB CHECK).",
+    "operationId": "decide_bind_v1_quotes__quote_ref__bind_decision_post",
+    "parameters": [
+     {
+      "name": "quote_ref",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Quote Ref"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/BindDecisionIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response Decide Bind V1 Quotes  Quote Ref  Bind Decision Post"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/quotes/{quote_ref}:issue": {
+   "post": {
+    "tags": [
+     "quotes"
+    ],
+    "summary": "Issue Policy",
+    "description": "Issue the policy as a signed W3C VC 2.0 credential and publish\ninsurance.policy.v1 (transactional outbox).",
+    "operationId": "issue_policy_v1_quotes__quote_ref__issue_post",
+    "parameters": [
+     {
+      "name": "quote_ref",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Quote Ref"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/IssueIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response Issue Policy V1 Quotes  Quote Ref  Issue Post"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/quotes/{quote_ref}/policy": {
+   "get": {
+    "tags": [
+     "quotes"
+    ],
+    "summary": "Get Policy For Quote",
+    "operationId": "get_policy_for_quote_v1_quotes__quote_ref__policy_get",
+    "parameters": [
+     {
+      "name": "quote_ref",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Quote Ref"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response Get Policy For Quote V1 Quotes  Quote Ref  Policy Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/policies/{policy_number}": {
+   "get": {
+    "tags": [
+     "policies"
+    ],
+    "summary": "Get Policy",
+    "operationId": "get_policy_v1_policies__policy_number__get",
+    "parameters": [
+     {
+      "name": "policy_number",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Policy Number"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response Get Policy V1 Policies  Policy Number  Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/policies/{policy_number}/credential": {
+   "get": {
+    "tags": [
+     "policies"
+    ],
+    "summary": "Get Policy Credential",
+    "operationId": "get_policy_credential_v1_policies__policy_number__credential_get",
+    "parameters": [
+     {
+      "name": "policy_number",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Policy Number"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response Get Policy Credential V1 Policies  Policy Number  Credential Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/policies/{policy_number}/endorsements": {
+   "post": {
+    "tags": [
+     "policies"
+    ],
+    "summary": "Add Endorsement",
+    "operationId": "add_endorsement_v1_policies__policy_number__endorsements_post",
+    "parameters": [
+     {
+      "name": "policy_number",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Policy Number"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/EndorsementIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response Add Endorsement V1 Policies  Policy Number  Endorsements Post"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "get": {
+    "tags": [
+     "policies"
+    ],
+    "summary": "List Endorsements",
+    "operationId": "list_endorsements_v1_policies__policy_number__endorsements_get",
+    "parameters": [
+     {
+      "name": "policy_number",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Policy Number"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response List Endorsements V1 Policies  Policy Number  Endorsements Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/policies/{policy_number}:cancel": {
+   "post": {
+    "tags": [
+     "policies"
+    ],
+    "summary": "Cancel Policy",
+    "operationId": "cancel_policy_v1_policies__policy_number__cancel_post",
+    "parameters": [
+     {
+      "name": "policy_number",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Policy Number"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CancelIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response Cancel Policy V1 Policies  Policy Number  Cancel Post"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/status-list/{purpose}": {
+   "get": {
+    "tags": [
+     "policies"
+    ],
+    "summary": "Get Status List",
+    "description": "Public, unauthenticated: the signed bitstring status-list credential\nis itself the authenticity object (verifiers check the proof).",
+    "operationId": "get_status_list_v1_status_list__purpose__get",
+    "parameters": [
+     {
+      "name": "purpose",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Purpose"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response Get Status List V1 Status List  Purpose  Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/claims": {
+   "post": {
+    "tags": [
+     "claims"
+    ],
+    "summary": "File Fnol",
+    "operationId": "file_fnol_v1_claims_post",
+    "parameters": [
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Idempotency-Key"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/FnolIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response File Fnol V1 Claims Post"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/claims/{claim_ref}": {
+   "get": {
+    "tags": [
+     "claims"
+    ],
+    "summary": "Get Claim",
+    "operationId": "get_claim_v1_claims__claim_ref__get",
+    "parameters": [
+     {
+      "name": "claim_ref",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Claim Ref"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response Get Claim V1 Claims  Claim Ref  Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/claims/{claim_ref}/documents": {
+   "post": {
+    "tags": [
+     "claims"
+    ],
+    "summary": "Attach Document",
+    "operationId": "attach_document_v1_claims__claim_ref__documents_post",
+    "parameters": [
+     {
+      "name": "claim_ref",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Claim Ref"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/DocumentIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response Attach Document V1 Claims  Claim Ref  Documents Post"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/claims/{claim_ref}:propose-adjuster": {
+   "post": {
+    "tags": [
+     "claims"
+    ],
+    "summary": "Propose Adjuster",
+    "operationId": "propose_adjuster_v1_claims__claim_ref__propose_adjuster_post",
+    "parameters": [
+     {
+      "name": "claim_ref",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Claim Ref"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AdjusterProposal"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response Propose Adjuster V1 Claims  Claim Ref  Propose Adjuster Post"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/claims/{claim_ref}:confirm-adjuster": {
+   "post": {
+    "tags": [
+     "claims"
+    ],
+    "summary": "Confirm Adjuster",
+    "operationId": "confirm_adjuster_v1_claims__claim_ref__confirm_adjuster_post",
+    "parameters": [
+     {
+      "name": "claim_ref",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Claim Ref"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response Confirm Adjuster V1 Claims  Claim Ref  Confirm Adjuster Post"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/claims/{claim_ref}:propose-settlement": {
+   "post": {
+    "tags": [
+     "claims"
+    ],
+    "summary": "Propose Settlement",
+    "operationId": "propose_settlement_v1_claims__claim_ref__propose_settlement_post",
+    "parameters": [
+     {
+      "name": "claim_ref",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Claim Ref"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SettlementProposal"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response Propose Settlement V1 Claims  Claim Ref  Propose Settlement Post"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/claims/{claim_ref}:approve-settlement": {
+   "post": {
+    "tags": [
+     "claims"
+    ],
+    "summary": "Approve Settlement",
+    "operationId": "approve_settlement_v1_claims__claim_ref__approve_settlement_post",
+    "parameters": [
+     {
+      "name": "claim_ref",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Claim Ref"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response Approve Settlement V1 Claims  Claim Ref  Approve Settlement Post"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/claims/{claim_ref}:reject": {
+   "post": {
+    "tags": [
+     "claims"
+    ],
+    "summary": "Reject Claim",
+    "operationId": "reject_claim_v1_claims__claim_ref__reject_post",
+    "parameters": [
+     {
+      "name": "claim_ref",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Claim Ref"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RejectIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response Reject Claim V1 Claims  Claim Ref  Reject Post"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/claims:payout-receipt": {
+   "post": {
+    "tags": [
+     "claims"
+    ],
+    "summary": "Payout Receipt",
+    "operationId": "payout_receipt_v1_claims_payout_receipt_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/PayoutReceiptIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "type": "object",
+         "title": "Response Payout Receipt V1 Claims Payout Receipt Post"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/integrations/isr/evidence": {
+   "post": {
+    "tags": [
+     "integrations"
+    ],
+    "summary": "Ingest Isr Evidence",
+    "operationId": "ingest_isr_evidence_v1_integrations_isr_evidence_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/IsrEvidenceIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "type": "object",
+         "title": "Response Ingest Isr Evidence V1 Integrations Isr Evidence Post"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/partners": {
+   "get": {
+    "tags": [
+     "integrations"
+    ],
+    "summary": "List Partners",
+    "operationId": "list_partners_v1_partners_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "type": "object",
+         "title": "Response List Partners V1 Partners Get"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/partners/{partner_id}:call": {
+   "post": {
+    "tags": [
+     "integrations"
+    ],
+    "summary": "Call Partner",
+    "operationId": "call_partner_v1_partners__partner_id__call_post",
+    "parameters": [
+     {
+      "name": "partner_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Partner Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/PartnerCallIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "additionalProperties": true,
+         "title": "Response Call Partner V1 Partners  Partner Id  Call Post"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/v1/aggregates/portfolio": {
+   "get": {
+    "tags": [
+     "integrations"
+    ],
+    "summary": "Portfolio Aggregates",
+    "description": "Read-only regulator aggregates. Classification-free: counts and sums\nonly \u2014 no principal identities, no assured identifiers, no declaration\ncontent. Accessible to the ``insurer-aggregator`` role.",
+    "operationId": "portfolio_aggregates_v1_aggregates_portfolio_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": true,
+         "type": "object",
+         "title": "Response Portfolio Aggregates V1 Aggregates Portfolio Get"
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "components": {
+  "schemas": {
+   "AdjusterProposal": {
+    "properties": {
+     "adjuster_sub": {
+      "type": "string",
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Adjuster Sub"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "adjuster_sub"
+    ],
+    "title": "AdjusterProposal"
+   },
+   "BindDecisionIn": {
+    "properties": {
+     "decision": {
+      "type": "string",
+      "enum": [
+       "BIND",
+       "DECLINE"
+      ],
+      "title": "Decision"
+     },
+     "reason": {
+      "type": "string",
+      "maxLength": 2000,
+      "title": "Reason",
+      "default": ""
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "decision"
+    ],
+    "title": "BindDecisionIn"
+   },
+   "CancelIn": {
+    "properties": {
+     "reason": {
+      "type": "string",
+      "maxLength": 2000,
+      "title": "Reason",
+      "default": ""
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "title": "CancelIn"
+   },
+   "DeclarationLineIn": {
+    "properties": {
+     "hs_code": {
+      "type": "string",
+      "maxLength": 16,
+      "title": "Hs Code",
+      "default": ""
+     },
+     "description": {
+      "type": "string",
+      "maxLength": 2000,
+      "title": "Description",
+      "default": ""
+     },
+     "risk_class": {
+      "type": "string",
+      "maxLength": 64,
+      "title": "Risk Class",
+      "default": "general-cargo"
+     },
+     "customs_value_kobo": {
+      "type": "integer",
+      "maximum": 1000000000000000.0,
+      "exclusiveMinimum": 0.0,
+      "title": "Customs Value Kobo"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "customs_value_kobo"
+    ],
+    "title": "DeclarationLineIn",
+    "description": "The platform declaration line shape consumed by the NTP VAS attach\nAPI (singlewindow declaration-time insurance offer)."
+   },
+   "DocumentIn": {
+    "properties": {
+     "vault_ref": {
+      "type": "string",
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Vault Ref"
+     },
+     "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Sha256"
+     },
+     "description": {
+      "type": "string",
+      "maxLength": 256,
+      "title": "Description",
+      "default": ""
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "vault_ref",
+     "sha256"
+    ],
+    "title": "DocumentIn"
+   },
+   "EndorsementIn": {
+    "properties": {
+     "kind": {
+      "type": "string",
+      "enum": [
+       "EXTENSION",
+       "VALUE_CHANGE",
+       "ASSURED_CHANGE",
+       "CANCELLATION",
+       "REINSTATEMENT"
+      ],
+      "title": "Kind"
+     },
+     "premium_delta_kobo": {
+      "type": "integer",
+      "title": "Premium Delta Kobo",
+      "default": 0
+     },
+     "detail": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Detail"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "kind"
+    ],
+    "title": "EndorsementIn"
+   },
+   "FnolIn": {
+    "properties": {
+     "policy_number": {
+      "type": "string",
+      "maxLength": 40,
+      "minLength": 1,
+      "title": "Policy Number"
+     },
+     "loss_occurred_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Loss Occurred At"
+     },
+     "loss_description": {
+      "type": "string",
+      "maxLength": 4000,
+      "title": "Loss Description",
+      "default": ""
+     },
+     "claimed_kobo": {
+      "type": "integer",
+      "exclusiveMinimum": 0.0,
+      "title": "Claimed Kobo"
+     },
+     "trigger_event_id": {
+      "type": "string",
+      "maxLength": 128,
+      "title": "Trigger Event Id",
+      "default": ""
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "policy_number",
+     "loss_occurred_at",
+     "claimed_kobo"
+    ],
+    "title": "FnolIn"
+   },
+   "FromDeclaration": {
+    "properties": {
+     "declaration_ref": {
+      "type": "string",
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Declaration Ref"
+     },
+     "source_event_id": {
+      "type": "string",
+      "maxLength": 128,
+      "title": "Source Event Id",
+      "default": ""
+     },
+     "product_code": {
+      "type": "string",
+      "maxLength": 64,
+      "title": "Product Code",
+      "default": "marine-cargo-single"
+     },
+     "corridor": {
+      "type": "string",
+      "maxLength": 128,
+      "title": "Corridor",
+      "default": ""
+     },
+     "consignee_name": {
+      "type": "string",
+      "maxLength": 256,
+      "title": "Consignee Name",
+      "default": ""
+     },
+     "consignee_tin": {
+      "type": "string",
+      "maxLength": 32,
+      "title": "Consignee Tin",
+      "default": ""
+     },
+     "occurred_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Occurred At"
+     },
+     "lines": {
+      "items": {
+       "$ref": "#/components/schemas/DeclarationLineIn"
+      },
+      "type": "array",
+      "maxItems": 500,
+      "minItems": 1,
+      "title": "Lines"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "declaration_ref",
+     "occurred_at",
+     "lines"
+    ],
+    "title": "FromDeclaration"
+   },
+   "HTTPValidationError": {
+    "properties": {
+     "detail": {
+      "items": {
+       "$ref": "#/components/schemas/ValidationError"
+      },
+      "type": "array",
+      "title": "Detail"
+     }
+    },
+    "type": "object",
+    "title": "HTTPValidationError"
+   },
+   "IsrEvidenceIn": {
+    "properties": {
+     "envelope": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Envelope"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "envelope"
+    ],
+    "title": "IsrEvidenceIn"
+   },
+   "IssueIn": {
+    "properties": {
+     "inception_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Inception At"
+     },
+     "expiry_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Expiry At"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "inception_at",
+     "expiry_at"
+    ],
+    "title": "IssueIn"
+   },
+   "PartnerCallIn": {
+    "properties": {
+     "operation": {
+      "type": "string",
+      "enum": [
+       "quote-cede-offer",
+       "claim-notification",
+       "policy-evidence-pack"
+      ],
+      "title": "Operation"
+     },
+     "payload": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Payload"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "operation",
+     "payload"
+    ],
+    "title": "PartnerCallIn"
+   },
+   "PayoutReceiptIn": {
+    "properties": {
+     "external_reference": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "External Reference"
+     },
+     "claim_ref": {
+      "type": "string",
+      "maxLength": 40,
+      "minLength": 1,
+      "title": "Claim Ref"
+     },
+     "amount_kobo": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Amount Kobo"
+     },
+     "currency": {
+      "type": "string",
+      "maxLength": 3,
+      "minLength": 3,
+      "title": "Currency"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "external_reference",
+     "claim_ref",
+     "amount_kobo",
+     "currency"
+    ],
+    "title": "PayoutReceiptIn"
+   },
+   "ProductCreate": {
+    "properties": {
+     "code": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$",
+      "title": "Code"
+     },
+     "kind": {
+      "type": "string",
+      "enum": [
+       "marine-cargo-single",
+       "marine-cargo-open",
+       "ferry-parametric",
+       "protection-indemnity",
+       "hull"
+      ],
+      "title": "Kind"
+     },
+     "name": {
+      "type": "string",
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Name"
+     },
+     "definition": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Definition"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "code",
+     "kind",
+     "name"
+    ],
+    "title": "ProductCreate"
+   },
+   "QuoteCreate": {
+    "properties": {
+     "product_code": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$",
+      "title": "Product Code"
+     },
+     "product_version": {
+      "anyOf": [
+       {
+        "type": "integer",
+        "minimum": 1.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Product Version"
+     },
+     "corridor": {
+      "type": "string",
+      "maxLength": 128,
+      "title": "Corridor",
+      "default": ""
+     },
+     "declaration_ref": {
+      "type": "string",
+      "maxLength": 64,
+      "title": "Declaration Ref",
+      "default": ""
+     },
+     "assured_name": {
+      "type": "string",
+      "maxLength": 256,
+      "title": "Assured Name",
+      "default": ""
+     },
+     "assured_tin": {
+      "type": "string",
+      "maxLength": 32,
+      "title": "Assured Tin",
+      "default": ""
+     },
+     "lines": {
+      "items": {
+       "$ref": "#/components/schemas/QuoteLineIn"
+      },
+      "type": "array",
+      "maxItems": 500,
+      "minItems": 1,
+      "title": "Lines"
+     },
+     "expected_premium_kobo": {
+      "anyOf": [
+       {
+        "type": "integer",
+        "minimum": 0.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Expected Premium Kobo"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "product_code",
+     "lines"
+    ],
+    "title": "QuoteCreate"
+   },
+   "QuoteLineIn": {
+    "properties": {
+     "description": {
+      "type": "string",
+      "maxLength": 2000,
+      "title": "Description",
+      "default": ""
+     },
+     "hs_code": {
+      "type": "string",
+      "maxLength": 16,
+      "title": "Hs Code",
+      "default": ""
+     },
+     "risk_class": {
+      "type": "string",
+      "maxLength": 64,
+      "minLength": 1,
+      "title": "Risk Class"
+     },
+     "insured_value_kobo": {
+      "type": "integer",
+      "maximum": 1000000000000000.0,
+      "exclusiveMinimum": 0.0,
+      "title": "Insured Value Kobo"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "risk_class",
+     "insured_value_kobo"
+    ],
+    "title": "QuoteLineIn"
+   },
+   "RateTableCreate": {
+    "properties": {
+     "effective_from": {
+      "type": "string",
+      "format": "date",
+      "title": "Effective From"
+     },
+     "effective_to": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Effective To"
+     },
+     "rates": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Rates"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "effective_from",
+     "rates"
+    ],
+    "title": "RateTableCreate"
+   },
+   "RejectIn": {
+    "properties": {
+     "reason": {
+      "type": "string",
+      "maxLength": 2000,
+      "minLength": 1,
+      "title": "Reason"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "reason"
+    ],
+    "title": "RejectIn"
+   },
+   "SettlementProposal": {
+    "properties": {
+     "settled_kobo": {
+      "type": "integer",
+      "exclusiveMinimum": 0.0,
+      "title": "Settled Kobo"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "settled_kobo"
+    ],
+    "title": "SettlementProposal"
+   },
+   "ValidationError": {
+    "properties": {
+     "loc": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "integer"
+        }
+       ]
+      },
+      "type": "array",
+      "title": "Location"
+     },
+     "msg": {
+      "type": "string",
+      "title": "Message"
+     },
+     "type": {
+      "type": "string",
+      "title": "Error Type"
+     }
+    },
+    "type": "object",
+    "required": [
+     "loc",
+     "msg",
+     "type"
+    ],
+    "title": "ValidationError"
+   }
+  }
+ }
+}
