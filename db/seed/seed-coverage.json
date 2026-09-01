@@ -1,0 +1,30 @@
+{
+  "database": "be_ins",
+  "exemptions": {},
+  "table_count": 21,
+  "tables": {
+    "audit_events": 2,
+    "bind_decisions": 2,
+    "claim_documents": 2,
+    "claims": 2,
+    "endorsements": 2,
+    "gateway_calls": 2,
+    "idempotency_records": 2,
+    "isr_evidence": 2,
+    "journals": 2,
+    "ledger_entries": 2,
+    "outbox_messages": 2,
+    "payout_receipts": 2,
+    "policies": 2,
+    "policy_serial_counters": 2,
+    "principals": 2,
+    "processed_events": 2,
+    "products": 2,
+    "quote_lines": 2,
+    "quotes": 2,
+    "rate_tables": 2,
+    "status_list_snapshots": 2
+  },
+  "total_rows": 42,
+  "unjustified_empty_tables": []
+}
