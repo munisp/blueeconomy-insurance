@@ -38,6 +38,11 @@ from insurance.models import (
     utcnow,
 )
 from insurance.services import audit, statuslists
+from insurance.services.journal import (
+    ACCT_PREMIUM_INCOME,
+    ACCT_PREMIUM_RECEIVABLE,
+    post_journal,
+)
 
 KIND_TO_FAMILY = {
     "marine-cargo-single": "CRG",
@@ -309,6 +314,22 @@ async def decide_bind(
         quote.status = "BOUND"
         quote.bound_by = principal
         quote.bound_at = utcnow()
+        # Premium economics are recognized at bind: Dr premium:receivable /
+        # Cr premium:income, in the SAME transaction as the state change so
+        # the subledger can never diverge from the quote state. Replay-safe:
+        # the BIND_PENDING gate above plus the unique journal reference make a
+        # second recognition impossible.
+        if quote.premium_kobo > 0:
+            journal = await post_journal(
+                session,
+                reference=f"premium-bind:{quote.quote_ref}",
+                narration=f"Premium recognized at bind {quote.quote_ref}",
+                legs=[
+                    (ACCT_PREMIUM_RECEIVABLE, quote.premium_kobo, 0),
+                    (ACCT_PREMIUM_INCOME, 0, quote.premium_kobo),
+                ],
+            )
+            quote.premium_journal_reference = journal.reference
     else:
         quote.status = "DECLINED"
     await session.flush()
@@ -436,15 +457,127 @@ async def add_endorsement(
         )
     ).scalar_one()
     endorsement_no = (row or 0) + 1
+    # Maker-checker: a non-zero premium delta changes the premium subledger,
+    # so it takes effect only after a DIFFERENT principal approves it (which
+    # posts the balanced delta journal). Zero-delta endorsements have no
+    # financial impact and are APPROVED at creation.
+    status = "PROPOSED" if premium_delta_kobo != 0 else "APPROVED"
     endorsement = Endorsement(
         policy_id=policy.id, endorsement_no=endorsement_no, kind=kind,
-        premium_delta_kobo=premium_delta_kobo, detail=detail, created_by=principal,
+        premium_delta_kobo=premium_delta_kobo, detail=detail, status=status,
+        created_by=principal,
     )
     session.add(endorsement)
     await session.flush()
     await audit.record(session, "policy.endorsed", {
         "policyNumber": policy.policy_number, "endorsementNo": endorsement_no,
-        "kind": kind, "premiumDeltaKobo": premium_delta_kobo, "by": principal,
+        "kind": kind, "premiumDeltaKobo": premium_delta_kobo, "status": status,
+        "by": principal,
+    })
+    return endorsement
+
+
+async def approve_endorsement(
+    session: AsyncSession,
+    *,
+    policy: Policy,
+    endorsement_no: int,
+    principal: str,
+) -> Endorsement:
+    """Checker: approve a PROPOSED endorsement and post the balanced premium
+    delta journal atomically with the state change.
+
+    delta > 0 (additional premium): Dr premium:receivable / Cr premium:income
+    delta < 0 (return premium):     Dr premium:income / Cr premium:receivable
+                                    (contra / revenue refund)
+
+    Checker != maker (service check AND ck_endorsement_dual_control).
+    Replay-safe: the PROPOSED gate plus the unique journal reference make a
+    double post impossible."""
+    await session.execute(select(Policy.id).where(Policy.id == policy.id).with_for_update())
+    await session.refresh(policy)
+    endorsement = (
+        await session.execute(
+            select(Endorsement).where(
+                Endorsement.policy_id == policy.id,
+                Endorsement.endorsement_no == endorsement_no,
+            )
+        )
+    ).scalar_one_or_none()
+    if endorsement is None:
+        raise LifecycleError("unknown-endorsement", f"endorsement {endorsement_no}")
+    if endorsement.status != "PROPOSED":
+        raise LifecycleError("bad-state", f"endorsement is {endorsement.status}, not PROPOSED")
+    if principal == endorsement.created_by:
+        raise LifecycleError("dual-control-violation", "endorsement approver must differ from the maker")
+    delta = endorsement.premium_delta_kobo
+    if delta != 0 and policy.premium_kobo + delta < 0:
+        raise LifecycleError(
+            "amount-out-of-range",
+            f"delta {delta} would drive policy premium {policy.premium_kobo} below zero",
+        )
+    if delta != 0:
+        amount = abs(delta)
+        legs: list[tuple[str, int, int]] = (
+            [(ACCT_PREMIUM_RECEIVABLE, amount, 0), (ACCT_PREMIUM_INCOME, 0, amount)]
+            if delta > 0
+            else [(ACCT_PREMIUM_INCOME, amount, 0), (ACCT_PREMIUM_RECEIVABLE, 0, amount)]
+        )
+        journal = await post_journal(
+            session,
+            reference=f"endorsement:{policy.policy_number}:{endorsement.endorsement_no}",
+            narration=(
+                f"Endorsement {policy.policy_number}#{endorsement.endorsement_no} "
+                f"premium delta {delta}"
+            ),
+            legs=legs,
+        )
+        endorsement.journal_reference = journal.reference
+        policy.premium_kobo += delta
+    endorsement.status = "APPROVED"
+    endorsement.approved_by = principal
+    endorsement.approved_at = utcnow()
+    await session.flush()
+    await audit.record(session, "policy.endorsement-approved", {
+        "policyNumber": policy.policy_number, "endorsementNo": endorsement.endorsement_no,
+        "premiumDeltaKobo": delta, "journalReference": endorsement.journal_reference,
+        "by": principal,
+    })
+    return endorsement
+
+
+async def reject_endorsement(
+    session: AsyncSession,
+    *,
+    policy: Policy,
+    endorsement_no: int,
+    principal: str,
+    reason: str = "",
+) -> Endorsement:
+    """Checker: reject a PROPOSED endorsement. Terminal; no journal leg."""
+    await session.execute(select(Policy.id).where(Policy.id == policy.id).with_for_update())
+    await session.refresh(policy)
+    endorsement = (
+        await session.execute(
+            select(Endorsement).where(
+                Endorsement.policy_id == policy.id,
+                Endorsement.endorsement_no == endorsement_no,
+            )
+        )
+    ).scalar_one_or_none()
+    if endorsement is None:
+        raise LifecycleError("unknown-endorsement", f"endorsement {endorsement_no}")
+    if endorsement.status != "PROPOSED":
+        raise LifecycleError("bad-state", f"endorsement is {endorsement.status}, not PROPOSED")
+    if principal == endorsement.created_by:
+        raise LifecycleError("dual-control-violation", "endorsement checker must differ from the maker")
+    endorsement.status = "REJECTED"
+    endorsement.approved_by = principal
+    endorsement.approved_at = utcnow()
+    await session.flush()
+    await audit.record(session, "policy.endorsement-rejected", {
+        "policyNumber": policy.policy_number, "endorsementNo": endorsement.endorsement_no,
+        "by": principal, "reason": reason,
     })
     return endorsement
 
@@ -481,6 +614,101 @@ async def cancel_or_lapse(
     await audit.record(session, f"policy.{new_status.lower()}", {
         "policyNumber": policy.policy_number, "by": principal, "reason": reason,
     })
+
+
+async def suspend_policy(
+    session: AsyncSession,
+    *,
+    settings: Settings,
+    signing_key: SigningKey,
+    policy: Policy,
+    principal: str,
+    reason: str = "",
+) -> None:
+    """Suspend cover (e.g. premium default). Sets the SUSPENSION bit in the
+    signed status list so offline verifiers fail closed — the database-row
+    status alone is not verifier-visible."""
+    await session.execute(select(Policy.id).where(Policy.id == policy.id).with_for_update())
+    await session.refresh(policy)
+    if policy.status != "ACTIVE":
+        raise LifecycleError("bad-state", f"policy is {policy.status}, not ACTIVE")
+    policy.status = "SUSPENDED"
+    await statuslists.set_flag(
+        session,
+        purpose="suspension",
+        index=policy.status_list_index,
+        settings=settings,
+        signing_key=signing_key,
+        verification_method=f"{settings.issuer_did}#{signing_key.kid}",
+    )
+    await session.flush()
+    await audit.record(session, "policy.suspended", {
+        "policyNumber": policy.policy_number, "by": principal, "reason": reason,
+    })
+
+
+async def reinstate_policy(
+    session: AsyncSession,
+    *,
+    settings: Settings,
+    signing_key: SigningKey,
+    policy: Policy,
+    principal: str,
+    reason: str = "",
+) -> None:
+    """Reinstate a suspended policy; clears the suspension bit by publishing
+    a new signed status-list snapshot with the bit reset."""
+    await session.execute(select(Policy.id).where(Policy.id == policy.id).with_for_update())
+    await session.refresh(policy)
+    if policy.status != "SUSPENDED":
+        raise LifecycleError("bad-state", f"policy is {policy.status}, not SUSPENDED")
+    policy.status = "ACTIVE"
+    await statuslists.clear_flag(
+        session,
+        purpose="suspension",
+        index=policy.status_list_index,
+        settings=settings,
+        signing_key=signing_key,
+        verification_method=f"{settings.issuer_did}#{signing_key.kid}",
+    )
+    await session.flush()
+    await audit.record(session, "policy.reinstated", {
+        "policyNumber": policy.policy_number, "by": principal, "reason": reason,
+    })
+
+
+async def lapse_sweep(
+    session: AsyncSession,
+    *,
+    settings: Settings,
+    signing_key: SigningKey,
+    principal: str,
+    batch_size: int = 500,
+) -> int:
+    """Lapse every ACTIVE policy whose cover window has ended, setting the
+    revocation status-list bit for each so offline verifiers fail closed even
+    when no claim or lookup ever touches the policy again.
+
+    Rows are claimed FOR UPDATE SKIP LOCKED, so concurrent sweeps are safe;
+    each policy is transitioned by exactly one transaction. Returns the
+    number of policies lapsed in this batch."""
+    now = utcnow()
+    rows = (
+        await session.execute(
+            select(Policy)
+            .where(Policy.status == "ACTIVE", Policy.expiry_at <= now)
+            .order_by(Policy.expiry_at)
+            .limit(batch_size)
+            .with_for_update(skip_locked=True)
+        )
+    ).scalars().all()
+    for policy in rows:
+        await cancel_or_lapse(
+            session, settings=settings, signing_key=signing_key,
+            policy=policy, new_status="LAPSED", principal=principal,
+            reason="cover window ended (lapse sweep)",
+        )
+    return len(rows)
 
 
 def policy_event_resource(policy: Policy) -> dict[str, Any]:

@@ -11,6 +11,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from insurance.models import Journal, LedgerEntry
 
+# Ledger accounts (kobo, double-entry).
+ACCT_CLAIMS_PAYABLE = "claims:payable"
+ACCT_INSURER_CLEARING = "insurer:clearing"
+ACCT_PREMIUM_INCOME = "premium:income"
+ACCT_PREMIUM_RECEIVABLE = "premium:receivable"
+
 
 class JournalError(ValueError):
     pass

@@ -7,8 +7,14 @@ from typing import Any
 from fastapi import APIRouter, Request
 from sqlalchemy import text
 
-from insurance.api.deps import IdentityDep, SessionDep, SettingsDep, require_policy
-from insurance.services import audit
+from insurance.api.deps import (
+    IdentityDep,
+    SessionDep,
+    SettingsDep,
+    get_signing_key,
+    require_policy,
+)
+from insurance.services import audit, lifecycle
 from insurance.services.capabilities import capability_report
 
 router = APIRouter(tags=["ops"])
@@ -36,6 +42,23 @@ async def capabilities(request: Request, settings: SettingsDep, session: Session
     if settings.kafka_configured and not runtime["kafka"]:
         runtime["kafka_reason"] = "Kafka configured but producer not started"
     return capability_report(settings, runtime)
+
+
+@router.post("/v1/ops:lapse-sweep")
+async def lapse_sweep(
+    request: Request, identity: IdentityDep, session: SessionDep, settings: SettingsDep
+) -> dict[str, Any]:
+    """Lapse every ACTIVE policy past its cover window, setting the
+    revocation status-list bit for each so offline verifiers fail closed.
+    Batch-sized and SKIP LOCKED; safe to invoke repeatedly (idempotent:
+    already-lapsed policies are no longer ACTIVE and are never re-touched)."""
+    require_policy(request, identity, "policy", "lapse-sweep", "CONFIDENTIAL")
+    lapsed = await lifecycle.lapse_sweep(
+        session, settings=settings, signing_key=get_signing_key(request),
+        principal=identity.subject,
+    )
+    await session.commit()
+    return {"lapsed": lapsed}
 
 
 @router.get("/v1/audit/verify")

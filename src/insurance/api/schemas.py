@@ -96,6 +96,21 @@ class CancelIn(Strict):
     reason: str = Field(default="", max_length=2000)
 
 
+class EndorsementRejectIn(Strict):
+    reason: str = Field(default="", max_length=2000)
+
+
+class SuspendIn(Strict):
+    reason: str = Field(default="", max_length=2000)
+
+
+class PremiumReceiptIn(Strict):
+    external_reference: str = Field(min_length=1, max_length=128)
+    policy_number: str = Field(min_length=1, max_length=40)
+    amount_kobo: int = Field(ge=0)
+    currency: str = Field(min_length=3, max_length=3)
+
+
 # ------------------------------------------------------------------ claims
 
 

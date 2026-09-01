@@ -23,13 +23,20 @@ from insurance.models import (
     utcnow,
 )
 from insurance.services import audit
-from insurance.services.journal import post_journal
+from insurance.services.journal import (
+    ACCT_CLAIMS_PAYABLE,
+    ACCT_INSURER_CLEARING,
+    ACCT_PREMIUM_INCOME,
+    ACCT_PREMIUM_RECEIVABLE,
+    post_journal,
+)
 
-# Settlement ledger accounts (kobo, double-entry).
-ACCT_CLAIMS_PAYABLE = "claims:payable"
-ACCT_INSURER_CLEARING = "insurer:clearing"
-ACCT_PREMIUM_INCOME = "premium:income"
-ACCT_PREMIUM_RECEIVABLE = "premium:receivable"
+# Ledger accounts live in services.journal; re-exported here for callers that
+# imported them from claims before the premium economics were journaled.
+__all__ = [
+    "ACCT_CLAIMS_PAYABLE", "ACCT_INSURER_CLEARING",
+    "ACCT_PREMIUM_INCOME", "ACCT_PREMIUM_RECEIVABLE",
+]
 
 
 class ClaimError(ValueError):

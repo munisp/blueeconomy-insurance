@@ -88,6 +88,33 @@ async def set_flag(
     await session.flush()
 
 
+async def clear_flag(
+    session: AsyncSession,
+    *,
+    purpose: str,
+    index: int,
+    settings: Settings,
+    signing_key: SigningKey,
+    verification_method: str,
+) -> None:
+    """Clear a policy's bit in one status list (e.g. suspension lifted on
+    reinstatement) and publish the new signed snapshot."""
+    if purpose not in PURPOSES:
+        raise StatusListError_(f"unknown purpose {purpose}")
+    status_list = await _current_list(session, purpose)
+    status_list.set(index, False)
+    credential = build_status_list_credential(
+        list_credential_id=list_credential_id(settings, purpose),
+        issuer_did=settings.issuer_did,
+        status_purpose=purpose,
+        status_list=status_list,
+        key=signing_key,
+        verification_method=verification_method,
+    )
+    session.add(StatusListSnapshot(purpose=purpose, bitstring=status_list.encode(), credential=credential))
+    await session.flush()
+
+
 async def current_credential(session: AsyncSession, purpose: str) -> dict[str, Any] | None:
     row = (
         await session.execute(

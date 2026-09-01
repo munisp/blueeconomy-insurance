@@ -31,6 +31,9 @@ _EVENT_RESOURCES: dict[str, str] = {
     "insurance.policy.v1": "InsurancePolicyIssued",
     "insurance.policy-endorsed.v1": "InsurancePolicyEndorsed",
     "insurance.policy-cancelled.v1": "InsurancePolicyCancelled",
+    "insurance.policy-suspended.v1": "InsurancePolicySuspended",
+    "insurance.policy-reinstated.v1": "InsurancePolicyReinstated",
+    "insurance.premium-received.v1": "InsurancePremiumReceived",
     "insurance.claim.v1": "InsuranceClaimSettled",
     "insurance.claim-paid.v1": "InsuranceClaimPaid",
 }
