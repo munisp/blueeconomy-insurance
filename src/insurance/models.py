@@ -164,6 +164,9 @@ class Quote(Base):
     bind_requested_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     bound_by: Mapped[str] = mapped_column(String(256), default="")
     bound_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Journal reference of the premium recognition posted at bind
+    # (Dr premium:receivable / Cr premium:income); "" until bound.
+    premium_journal_reference: Mapped[str] = mapped_column(String(128), default="")
     idempotency_key: Mapped[str] = mapped_column(String(128), default="")
     __table_args__ = (
         CheckConstraint(f"status IN {QUOTE_STATUSES!r}", name="ck_quote_status"),
@@ -209,7 +212,7 @@ class BindDecision(Base):
 # ----------------------------------------------------------------- policies
 
 
-POLICY_STATUSES = ("ACTIVE", "LAPSED", "CANCELLED")
+POLICY_STATUSES = ("ACTIVE", "SUSPENDED", "LAPSED", "CANCELLED")
 
 
 class PolicySerialCounter(Base):
@@ -246,6 +249,9 @@ class Policy(Base):
     issued_by: Mapped[str] = mapped_column(String(256))
     issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Set when an exact-match premium receipt is applied (Dr insurer:clearing
+    # / Cr premium:receivable); None until the premium is received.
+    premium_paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     __table_args__ = (
         CheckConstraint(f"status IN {POLICY_STATUSES!r}", name="ck_policy_status"),
         CheckConstraint("premium_kobo >= 0", name="ck_policy_premium"),
@@ -257,9 +263,18 @@ class Policy(Base):
 ENDORSEMENT_KINDS = ("EXTENSION", "VALUE_CHANGE", "ASSURED_CHANGE", "CANCELLATION", "REINSTATEMENT")
 
 
+ENDORSEMENT_STATUSES = ("PROPOSED", "APPROVED", "REJECTED")
+
+
 class Endorsement(Base):
-    """Policy endorsement; append-only (trigger). Monetary deltas are integer
-    kobo and posted to the double-entry journal by the service."""
+    """Policy endorsement. Monetary deltas are integer kobo and posted to the
+    double-entry journal by the service.
+
+    Maker-checker: an endorsement with a non-zero premium delta is PROPOSED
+    by the maker and takes effect only when a DIFFERENT principal approves it
+    (service check AND ck_endorsement_dual_control); approval posts the
+    balanced delta journal atomically with the state change. Zero-delta
+    endorsements carry no financial impact and are APPROVED at creation."""
 
     __tablename__ = "endorsements"
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
@@ -268,12 +283,18 @@ class Endorsement(Base):
     kind: Mapped[str] = mapped_column(String(24))
     premium_delta_kobo: Mapped[int] = mapped_column(BigInteger, default=0)  # signed
     detail: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    status: Mapped[str] = mapped_column(String(16), default="PROPOSED")
     journal_reference: Mapped[str] = mapped_column(String(128), default="")
     created_by: Mapped[str] = mapped_column(String(256))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    approved_by: Mapped[str] = mapped_column(String(256), default="")
+    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     __table_args__ = (
         UniqueConstraint("policy_id", "endorsement_no", name="uq_endorsement_no"),
         CheckConstraint(f"kind IN {ENDORSEMENT_KINDS!r}", name="ck_endorsement_kind"),
+        CheckConstraint(f"status IN {ENDORSEMENT_STATUSES!r}", name="ck_endorsement_status"),
+        # maker-checker, DB-enforced: approver must differ from the creator
+        CheckConstraint("approved_by = '' OR approved_by <> created_by", name="ck_endorsement_dual_control"),
     )
 
 
@@ -391,6 +412,28 @@ class PayoutReceipt(Base):
     __table_args__ = (
         CheckConstraint("status IN ('APPLIED','QUARANTINED')", name="ck_receipt_status"),
         CheckConstraint("amount_kobo >= 0", name="ck_receipt_amount"),
+    )
+
+
+class PremiumReceipt(Base):
+    """Premium payment receipt for a bound/issued policy. Exact amount +
+    currency match against the policy premium is REQUIRED; anything else is
+    quarantined and never silently applied. An applied receipt posts the
+    balanced settlement leg (Dr insurer:clearing / Cr premium:receivable)."""
+
+    __tablename__ = "premium_receipts"
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    policy_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("policies.id"))
+    external_reference: Mapped[str] = mapped_column(String(128), unique=True)  # replay killer
+    amount_kobo: Mapped[int] = mapped_column(BigInteger)
+    currency: Mapped[str] = mapped_column(String(3))
+    status: Mapped[str] = mapped_column(String(16))  # APPLIED | QUARANTINED
+    quarantine_reason: Mapped[str] = mapped_column(Text, default="")
+    journal_reference: Mapped[str] = mapped_column(String(128), default="")
+    received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    __table_args__ = (
+        CheckConstraint("status IN ('APPLIED','QUARANTINED')", name="ck_premium_receipt_status"),
+        CheckConstraint("amount_kobo >= 0", name="ck_premium_receipt_amount"),
     )
 
 

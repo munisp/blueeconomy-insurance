@@ -110,6 +110,42 @@
       "classification": ["CONFIDENTIAL"]
     },
     {
+      "name": "underwriter-approver-decides-endorsements",
+      "roles": ["underwriter-approver"],
+      "resource": "policy",
+      "action": "endorse-decide",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["CONFIDENTIAL"]
+    },
+    {
+      "name": "underwriter-approver-suspends-policies",
+      "roles": ["underwriter-approver"],
+      "resource": "policy",
+      "action": "suspend",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["CONFIDENTIAL"]
+    },
+    {
+      "name": "finance-officer-records-premium-receipts",
+      "roles": ["finance-officer"],
+      "resource": "policy",
+      "action": "receive-premium",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["FIDUCIARY_SEGREGATED"]
+    },
+    {
+      "name": "underwriter-approver-runs-lapse-sweep",
+      "roles": ["underwriter-approver"],
+      "resource": "policy",
+      "action": "lapse-sweep",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["CONFIDENTIAL"]
+    },
+    {
       "name": "underwriter-approver-cancels-policies",
       "roles": ["underwriter-approver"],
       "resource": "policy",

@@ -23,6 +23,9 @@ TOPIC_BY_EVENT = {
     "insurance.policy.v1": "insurance.policy",
     "insurance.policy-endorsed.v1": "insurance.policy",
     "insurance.policy-cancelled.v1": "insurance.policy",
+    "insurance.policy-suspended.v1": "insurance.policy",
+    "insurance.policy-reinstated.v1": "insurance.policy",
+    "insurance.premium-received.v1": "insurance.policy",
     "insurance.claim.v1": "insurance.claim",
     "insurance.claim-paid.v1": "insurance.claim",
 }
@@ -31,6 +34,9 @@ _CLASSIFICATION_BY_EVENT = {
     "insurance.policy.v1": "CONFIDENTIAL",
     "insurance.policy-endorsed.v1": "CONFIDENTIAL",
     "insurance.policy-cancelled.v1": "CONFIDENTIAL",
+    "insurance.policy-suspended.v1": "CONFIDENTIAL",
+    "insurance.policy-reinstated.v1": "CONFIDENTIAL",
+    "insurance.premium-received.v1": "CONFIDENTIAL",
     "insurance.claim.v1": "CONFIDENTIAL",
     "insurance.claim-paid.v1": "CONFIDENTIAL",
 }

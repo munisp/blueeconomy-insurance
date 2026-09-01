@@ -73,7 +73,7 @@ def migrated_url(database_url: str) -> str:
 
 
 _TRUNCATE = """
-    TRUNCATE payout_receipts, ledger_entries, journals, claim_documents, claims,
+    TRUNCATE premium_receipts, payout_receipts, ledger_entries, journals, claim_documents, claims,
              endorsements, policies, policy_serial_counters, bind_decisions,
              quote_lines, quotes, isr_evidence, rate_tables, products,
              gateway_calls, idempotency_records, outbox_messages, audit_events,
