@@ -1,4 +1,12 @@
-"""Ops routes: health, capabilities (honesty registry), audit-chain verify."""
+"""Ops routes.
+
+PUBLIC: the liveness probe (``/healthz``).
+INTERNAL: ``/v1/capabilities`` and the audit-chain verifier leak DB/Kafka
+internals and audit integrity state, so they are policy-gated behind
+require_policy("ops", "read") / ("audit", "verify") — anonymous callers get
+401 (or 503 when OIDC is unconfigured: fail-closed), authenticated callers
+without the auditor role get 403.
+"""
 
 from __future__ import annotations
 
@@ -26,7 +34,9 @@ async def healthz() -> dict[str, Any]:
 
 
 @router.get("/v1/capabilities")
-async def capabilities(request: Request, settings: SettingsDep, session: SessionDep) -> dict[str, Any]:
+async def capabilities(request: Request, settings: SettingsDep, session: SessionDep,
+                       identity: IdentityDep) -> dict[str, Any]:
+    require_policy(request, identity, "ops", "read", "INTERNAL")
     runtime: dict[str, bool | str] = {}
     try:
         await session.execute(text("SELECT 1"))

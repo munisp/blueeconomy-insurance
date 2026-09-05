@@ -279,6 +279,15 @@
       "tenant": "*",
       "clearance": ["*"],
       "classification": ["CONFIDENTIAL"]
+    },
+    {
+      "name": "auditor-runs-ops-verification",
+      "roles": ["auditor"],
+      "resource": "ops",
+      "action": "read",
+      "tenant": "*",
+      "clearance": ["*"],
+      "classification": ["*"]
     }
   ]
 }
