@@ -139,8 +139,10 @@ async def test_missing_database_url_refused(monkeypatch, tmp_path, migrated_url)
 
 
 async def test_capabilities_honest_about_unconfigured(client):
+    from .conftest import auth
+
     c, mint = client
-    r = await c.get("/v1/capabilities")
+    r = await c.get("/v1/capabilities", headers=auth(mint("aud-1", ["auditor"])))
     assert r.status_code == 200
     caps = {cap["capability"]: cap for cap in r.json()["capabilities"]}
     assert caps["database"]["available"] is True
@@ -152,3 +154,28 @@ async def test_capabilities_honest_about_unconfigured(client):
     # Honest negatives: no ceding stubs, no payout rail fabrication.
     assert caps["reinsurance.ceding"]["available"] is False
     assert "not implemented" in caps["reinsurance.ceding"]["reason"]
+
+
+async def test_capabilities_requires_authentication(client):
+    """S2 regression: /v1/capabilities leaks env/infra detail and must not be
+    anonymous. 401 without a token, 403 for a non-auditor, 200 for auditor."""
+    from .conftest import auth
+
+    c, mint = client
+    r = await c.get("/v1/capabilities")
+    assert r.status_code == 401
+    r = await c.get("/v1/capabilities", headers=auth(mint("uw-1", ["underwriter"])))
+    assert r.status_code == 403
+    r = await c.get("/v1/capabilities", headers=auth(mint("aud-1", ["auditor"])))
+    assert r.status_code == 200
+
+
+async def test_security_headers_present(client):
+    """S5 regression: every response carries the platform security headers."""
+    c, _ = client
+    for path in ("/healthz", "/v1/capabilities"):
+        r = await c.get(path)
+        assert r.headers["strict-transport-security"].startswith("max-age=")
+        assert r.headers["x-content-type-options"] == "nosniff"
+        assert r.headers["x-frame-options"] == "DENY"
+        assert r.headers["referrer-policy"] == "no-referrer"
