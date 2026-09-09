@@ -9,8 +9,12 @@ RUN pip wheel --no-cache-dir --no-deps -w /wheels . \
  && pip wheel --no-cache-dir -w /wheels \
       "fastapi>=0.115,<1" "uvicorn[standard]>=0.30,<1" \
       "sqlalchemy[asyncio]>=2.0,<3" "alembic>=1.13,<2" "asyncpg>=0.29,<1" \
+      "redis>=5,<7" \
       "pydantic>=2.7,<3" "pydantic-settings>=2.3,<3" "cryptography>=42,<46" \
-      "aiokafka>=0.10,<1" "httpx>=0.27,<1"
+      "aiokafka>=0.10,<1" "httpx>=0.27,<1" \
+      "opentelemetry-api>=1.27,<2" "opentelemetry-sdk>=1.27,<2" \
+      "opentelemetry-exporter-otlp-proto-grpc>=1.27,<2" \
+      "opentelemetry-instrumentation-fastapi==0.48b0"
 
 FROM python:3.12-slim AS runtime
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
