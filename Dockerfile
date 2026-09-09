@@ -14,7 +14,11 @@ RUN pip wheel --no-cache-dir --no-deps -w /wheels . \
       "aiokafka>=0.10,<1" "httpx>=0.27,<1" \
       "opentelemetry-api>=1.27,<2" "opentelemetry-sdk>=1.27,<2" \
       "opentelemetry-exporter-otlp-proto-grpc>=1.27,<2" \
-      "opentelemetry-instrumentation-fastapi==0.48b0"
+      "opentelemetry-instrumentation-fastapi==0.48b0" \
+      "setuptools>=68"
+# setuptools/pkg_resources: python:3.12-slim doesn't ship it, but
+# opentelemetry-instrumentation's dependency-conflict checker still imports
+# pkg_resources at runtime. Confirmed live: ModuleNotFoundError on boot.
 
 FROM python:3.12-slim AS runtime
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
@@ -22,7 +26,7 @@ RUN useradd --system --uid 10001 insurance
 WORKDIR /app
 COPY --from=build /wheels /wheels
 RUN pip install --no-cache-dir --no-index --find-links=/wheels \
-      blueeconomy-insurance \
+      blueeconomy-insurance setuptools \
  && rm -rf /wheels
 COPY migrations ./migrations
 COPY alembic.ini ./alembic.ini
