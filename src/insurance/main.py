@@ -78,6 +78,10 @@ app = FastAPI(
     openapi_url=None,
 )
 
+from insurance.telemetry import init_telemetry  # noqa: E402
+
+init_telemetry(app)
+
 
 @app.exception_handler(RequestValidationError)
 async def validation_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
