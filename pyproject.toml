@@ -33,7 +33,13 @@ dependencies = [
     "opentelemetry-api>=1.27,<2",                       # Apache-2.0
     "opentelemetry-sdk>=1.27,<2",                       # Apache-2.0
     "opentelemetry-exporter-otlp-proto-grpc>=1.27,<2",  # Apache-2.0
-    "opentelemetry-instrumentation-fastapi==0.48b0",   # Apache-2.0
+    # 0.65b0, not 0.48b0: fastapi is unpinned here and resolves to a modern
+    # release (0.141.1) whose route internals 0.48b0's _get_route_details
+    # doesn't understand - AttributeError: '_IncludedRouter' object has no
+    # attribute 'path', on every single request through app.include_router()
+    # routes. Confirmed live (every non-excluded route 500'd) and confirmed
+    # fixed (0.65b0 handles it) before committing.
+    "opentelemetry-instrumentation-fastapi==0.65b0",   # Apache-2.0
 ]
 
 [project.optional-dependencies]

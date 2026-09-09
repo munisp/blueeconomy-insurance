@@ -14,7 +14,7 @@ RUN pip wheel --no-cache-dir --no-deps -w /wheels . \
       "aiokafka>=0.10,<1" "httpx>=0.27,<1" \
       "opentelemetry-api>=1.27,<2" "opentelemetry-sdk>=1.27,<2" \
       "opentelemetry-exporter-otlp-proto-grpc>=1.27,<2" \
-      "opentelemetry-instrumentation-fastapi==0.48b0" \
+      "opentelemetry-instrumentation-fastapi==0.65b0" \
       "setuptools<81"
 # setuptools/pkg_resources: python:3.12-slim doesn't ship it, but
 # opentelemetry-instrumentation's dependency-conflict checker still imports
