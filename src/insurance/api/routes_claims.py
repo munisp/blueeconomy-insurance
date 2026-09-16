@@ -37,7 +37,8 @@ router = APIRouter(prefix="/v1/claims", tags=["claims"])
 def _err(exc: ClaimError) -> HTTPException:
     status = 409 if exc.reason in (
         "bad-state", "dual-control-violation", "not-assigned-adjuster",
-        "policy-not-active", "loss-outside-cover",
+        "policy-not-active", "loss-outside-cover", "aggregate-cap-exceeded",
+        "premium-unpaid",
     ) else 400
     return HTTPException(status_code=status, detail={"reason": exc.reason, "detail": str(exc)})
 
