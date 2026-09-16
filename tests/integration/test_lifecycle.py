@@ -10,7 +10,7 @@ from sqlalchemy import text
 from insurance.crypto.vc import verify_proof
 from insurance.domain.serials import validate_policy_number
 
-from .conftest import auth, make_active_product, make_policy, make_quote
+from .conftest import auth, iso, make_active_product, make_policy, make_quote
 
 pytestmark = pytest.mark.asyncio
 
@@ -51,8 +51,11 @@ async def test_full_lifecycle(client, session_factory):
     ap = auth(mint("ap-1", ["underwriter-approver"]))
     r = await c.post(f"/v1/quotes/{ref}:bind-decision", json={"decision": "BIND"}, headers=ap)
     assert r.status_code == 200 and r.json()["status"] == "BOUND"
+    from datetime import UTC, datetime, timedelta
+
+    now = datetime.now(UTC)
     r = await c.post(f"/v1/quotes/{ref}:issue", json={
-        "inception_at": "2026-01-01T00:00:00Z", "expiry_at": "2027-01-01T00:00:00Z",
+        "inception_at": iso(now), "expiry_at": iso(now + timedelta(days=365)),
     }, headers=uw)
     assert r.status_code == 201, r.text
     policy = r.json()
@@ -147,3 +150,32 @@ async def test_policy_vc_proof_verifies(client, signing_key_directory=None):
     from insurance.main import app
     key = app.state.signing_key
     verify_proof(policy["credential"], key.public_key)  # no raise
+
+
+async def test_backdated_inception_rejected(client):
+    """Cover cannot be backdated: an inception earlier than issuance is
+    rejected, so pre-issuance losses can never be brought under cover."""
+    from datetime import UTC, datetime, timedelta
+
+    c, mint = client
+    await make_active_product(c, mint)
+    quote = await make_quote(c, mint)
+    ref = quote["quoteRef"]
+    uw = auth(mint("uw-1", ["underwriter"]))
+    ap = auth(mint("ap-1", ["underwriter-approver"]))
+    r = await c.post(f"/v1/quotes/{ref}:bind", headers=uw)
+    assert r.status_code == 200
+    r = await c.post(f"/v1/quotes/{ref}:bind-decision", json={"decision": "BIND"}, headers=ap)
+    assert r.status_code == 200
+    now = datetime.now(UTC)
+    r = await c.post(f"/v1/quotes/{ref}:issue", json={
+        "inception_at": iso(now - timedelta(days=1)),
+        "expiry_at": iso(now + timedelta(days=364)),
+    }, headers=uw)
+    assert r.status_code == 400
+    assert r.json()["detail"]["reason"] == "backdated-inception"
+    # A current inception still issues cleanly.
+    r = await c.post(f"/v1/quotes/{ref}:issue", json={
+        "inception_at": iso(now), "expiry_at": iso(now + timedelta(days=365)),
+    }, headers=uw)
+    assert r.status_code == 201, r.text

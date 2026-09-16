@@ -8,7 +8,7 @@ import asyncio
 import pytest
 from sqlalchemy import text
 
-from .conftest import auth, make_active_product, make_quote
+from .conftest import auth, iso, make_active_product, make_quote
 
 pytestmark = pytest.mark.asyncio
 
@@ -44,7 +44,10 @@ async def test_concurrent_issue_single_policy(client, session_factory):
     await c.post(f"/v1/quotes/{ref}:bind", headers=uw)
     await c.post(f"/v1/quotes/{ref}:bind-decision", json={"decision": "BIND"}, headers=ap)
 
-    body = {"inception_at": "2026-01-01T00:00:00Z", "expiry_at": "2027-01-01T00:00:00Z"}
+    from datetime import UTC, datetime, timedelta
+
+    now = datetime.now(UTC)
+    body = {"inception_at": iso(now), "expiry_at": iso(now + timedelta(days=365))}
     results = await asyncio.gather(*[
         c.post(f"/v1/quotes/{ref}:issue", json=body, headers=uw) for _ in range(6)
     ])
@@ -75,8 +78,11 @@ async def test_concurrent_sequence_claims_unique_numbers(client, session_factory
         ref = quote["quoteRef"]
         await c.post(f"/v1/quotes/{ref}:bind", headers=uw)
         await c.post(f"/v1/quotes/{ref}:bind-decision", json={"decision": "BIND"}, headers=ap)
+        from datetime import UTC, datetime, timedelta
+
+        now = datetime.now(UTC)
         r = await c.post(f"/v1/quotes/{ref}:issue", json={
-            "inception_at": "2026-01-01T00:00:00Z", "expiry_at": "2027-01-01T00:00:00Z",
+            "inception_at": iso(now), "expiry_at": iso(now + timedelta(days=365)),
         }, headers=uw)
         assert r.status_code == 201, r.text
         return r.json()["policyNumber"]
