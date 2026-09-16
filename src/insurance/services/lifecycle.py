@@ -380,6 +380,13 @@ async def issue_policy(
         raise LifecycleError("bad-state", f"quote is {quote.status}, not BOUND")
     if expiry_at <= inception_at:
         raise LifecycleError("bad-window", "expiry must be after inception")
+    # Backdating is rejected: cover starts no earlier than issuance (a small
+    # tolerance absorbs clock skew between client and server). A backdated
+    # inception would let pre-issuance losses be claimed against the policy.
+    if inception_at < utcnow() - timedelta(minutes=5):
+        raise LifecycleError(
+            "backdated-inception", "inception must not be earlier than issuance"
+        )
     product = (await session.execute(select(Product).where(Product.id == quote.product_id))).scalar_one()
     family = KIND_TO_FAMILY.get(product.kind)
     if family is None:

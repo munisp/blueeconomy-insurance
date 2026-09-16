@@ -144,9 +144,9 @@ def oidc_env(tmp_path, monkeypatch, migrated_url):
     get_settings.cache_clear()
 
 
-def mint_token(oidc_key: Ed25519PrivateKey, sub: str, roles: list[str]) -> str:
+def mint_token(oidc_key: Ed25519PrivateKey, sub: str, roles: list[str], kid: str = "test-oidc-0") -> str:
     """Mint a valid EdDSA bearer token for the local JWKS."""
-    header = b64u_encode(json.dumps({"alg": "EdDSA", "kid": "test-oidc-0", "typ": "JWT"}).encode())
+    header = b64u_encode(json.dumps({"alg": "EdDSA", "kid": kid, "typ": "JWT"}).encode())
     now = int(time.time())
     payload = b64u_encode(json.dumps({
         "iss": "https://keycloak.test/realms/blueeconomy",
@@ -224,8 +224,16 @@ async def make_quote(client, mint, premium_expected=None, corridor="lagos-onne")
     return r.json()
 
 
+def iso(dt) -> str:
+    """UTC timestamp in the wire format (backdating is rejected, so tests
+    must use real, current timestamps)."""
+    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 async def make_policy(client, mint) -> dict:
     """Full happy path: quote -> bind (maker) -> bind (checker) -> issue."""
+    from datetime import UTC, datetime, timedelta
+
     quote = await make_quote(client, mint, premium_expected=200_000)
     ref = quote["quoteRef"]
     uw = auth(mint("uw-1", ["underwriter"]))
@@ -234,8 +242,20 @@ async def make_policy(client, mint) -> dict:
     assert r.status_code == 200, r.text
     r = await client.post(f"/v1/quotes/{ref}:bind-decision", json={"decision": "BIND"}, headers=ap)
     assert r.status_code == 200, r.text
+    now = datetime.now(UTC)
     r = await client.post(f"/v1/quotes/{ref}:issue", json={
-        "inception_at": "2026-01-01T00:00:00Z", "expiry_at": "2027-01-01T00:00:00Z",
+        "inception_at": iso(now), "expiry_at": iso(now + timedelta(days=365)),
     }, headers=uw)
     assert r.status_code == 201, r.text
     return r.json()
+
+
+async def pay_premium(client, mint, policy_number: str, amount_kobo: int = 200_000) -> None:
+    """Apply an exact-match premium receipt (stamps premium_paid_at)."""
+    fin = auth(mint("fin-1", ["finance-officer"]))
+    r = await client.post("/v1/policies:premium-receipt", json={
+        "external_reference": f"prem-{uuid.uuid4().hex[:10]}",
+        "policy_number": policy_number, "amount_kobo": amount_kobo, "currency": "NGN",
+    }, headers=fin)
+    assert r.status_code == 201, r.text
+    assert r.json()["status"] == "APPLIED", r.text

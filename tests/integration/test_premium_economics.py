@@ -9,7 +9,7 @@ from sqlalchemy import text
 
 from insurance.crypto.statuslist import parse_status_list_credential
 
-from .conftest import auth, make_active_product, make_policy, make_quote
+from .conftest import auth, iso, make_active_product, make_policy, make_quote
 
 pytestmark = pytest.mark.asyncio
 
@@ -240,12 +240,21 @@ async def test_lapse_sweep_lapses_expired_policies(client, session_factory):
     ref = quote["quoteRef"]
     uw = auth(mint("uw-1", ["underwriter"]))
     ap = auth(mint("ap-1", ["underwriter-approver"]))
-    # Issue with a cover window entirely in the past.
+    # Issue with a normal window (backdating is rejected), then age the
+    # policy's cover window into the past directly in the database.
+    from datetime import UTC, datetime, timedelta
+
+    now = datetime.now(UTC)
     r = await c.post(f"/v1/quotes/{ref}:issue", json={
-        "inception_at": "2025-01-01T00:00:00Z", "expiry_at": "2026-01-01T00:00:00Z",
+        "inception_at": iso(now), "expiry_at": iso(now + timedelta(days=365)),
     }, headers=uw)
     assert r.status_code == 201, r.text
     number = r.json()["policyNumber"]
+    async with session_factory() as s:
+        await s.execute(text(
+            "UPDATE policies SET inception_at = :i, expiry_at = :e WHERE policy_number = :n"
+        ), {"i": now - timedelta(days=365), "e": now - timedelta(days=1), "n": number})
+        await s.commit()
 
     r = await c.post("/v1/ops:lapse-sweep", headers=ap)
     assert r.status_code == 200, r.text

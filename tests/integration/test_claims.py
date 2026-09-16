@@ -6,16 +6,22 @@ from __future__ import annotations
 import pytest
 from sqlalchemy import text
 
-from .conftest import auth, make_active_product, make_policy
+from .conftest import auth, iso, make_active_product, make_policy, pay_premium
 
 pytestmark = pytest.mark.asyncio
+
+
+def _loss_now() -> str:
+    from datetime import UTC, datetime, timedelta
+
+    return iso(datetime.now(UTC) + timedelta(hours=1))
 
 
 async def _fnol(c, mint, policy_number: str, **over) -> dict:
     adj = auth(mint("adj-1", ["claims-adjuster"]))
     body = {
         "policy_number": policy_number,
-        "loss_occurred_at": "2026-06-01T00:00:00Z",
+        "loss_occurred_at": _loss_now(),
         "loss_description": "container overboard",
         "claimed_kobo": 5_000_000,
     }
@@ -61,6 +67,12 @@ async def test_full_claim_journey(client, session_factory):
     r = await c.post(f"/v1/claims/{ref}:propose-settlement",
                      json={"settled_kobo": 4_000_000}, headers=adj)
     assert r.status_code == 200 and r.json()["status"] == "SETTLEMENT_PENDING"
+
+    # No claims payable before the premium is received.
+    r = await c.post(f"/v1/claims/{ref}:approve-settlement", headers=ap)
+    assert r.status_code == 409
+    assert r.json()["detail"]["reason"] == "premium-unpaid"
+    await pay_premium(c, mint, policy["policyNumber"])
 
     # Approver posts the balanced journal atomically with the state change.
     r = await c.post(f"/v1/claims/{ref}:approve-settlement", headers=ap)
@@ -108,14 +120,14 @@ async def test_claim_amount_and_window_guards(client):
     # Claim above insured value rejected.
     r = await c.post("/v1/claims", json={
         "policy_number": policy["policyNumber"],
-        "loss_occurred_at": "2026-06-01T00:00:00Z",
+        "loss_occurred_at": _loss_now(),
         "claimed_kobo": 10_000_001,
     }, headers=adj)
     assert r.status_code == 400
     # Loss outside cover window rejected.
     r = await c.post("/v1/claims", json={
         "policy_number": policy["policyNumber"],
-        "loss_occurred_at": "2028-06-01T00:00:00Z",
+        "loss_occurred_at": "2099-06-01T00:00:00Z",
         "claimed_kobo": 1_000,
     }, headers=adj)
     assert r.status_code == 409
@@ -154,3 +166,46 @@ async def test_append_only_tables_reject_mutation(session):
     with pytest.raises(DBAPIError):
         await session.execute(sql_text("UPDATE audit_events SET payload = '{}'::jsonb"))
     await session.rollback()
+
+
+async def test_aggregate_claim_cap_per_policy(client):
+    """The sum of claimed amounts across non-rejected claims can never
+    exceed the insured value, however each claim is individually in range."""
+    c, mint = client
+    await make_active_product(c, mint)
+    policy = await make_policy(c, mint)  # insured value 10_000_000
+    number = policy["policyNumber"]
+    adj = auth(mint("adj-1", ["claims-adjuster"]))
+
+    # First claim: 6M — fine.
+    r = await c.post("/v1/claims", json={
+        "policy_number": number, "loss_occurred_at": _loss_now(),
+        "loss_description": "first", "claimed_kobo": 6_000_000,
+    }, headers=adj)
+    assert r.status_code == 201, r.text
+
+    # Second claim: 6M — individually in range but breaches the aggregate.
+    r = await c.post("/v1/claims", json={
+        "policy_number": number, "loss_occurred_at": _loss_now(),
+        "loss_description": "second", "claimed_kobo": 6_000_000,
+    }, headers=adj)
+    assert r.status_code == 409
+    assert r.json()["detail"]["reason"] == "aggregate-cap-exceeded"
+
+    # A 4M claim fits exactly under the cap.
+    r = await c.post("/v1/claims", json={
+        "policy_number": number, "loss_occurred_at": _loss_now(),
+        "loss_description": "third", "claimed_kobo": 4_000_000,
+    }, headers=adj)
+    assert r.status_code == 201, r.text
+    ref3 = r.json()["claimRef"]
+
+    # Rejecting a claim releases its amount from the aggregate.
+    ap = auth(mint("cap-1", ["claims-approver"]))
+    r = await c.post(f"/v1/claims/{ref3}:reject", json={"reason": "not covered"}, headers=ap)
+    assert r.status_code in (200, 204), r.text
+    r = await c.post("/v1/claims", json={
+        "policy_number": number, "loss_occurred_at": _loss_now(),
+        "loss_description": "fourth", "claimed_kobo": 4_000_000,
+    }, headers=adj)
+    assert r.status_code == 201, r.text
