@@ -1,8 +1,10 @@
 """OIDC bearer authentication (Keycloak JWKS, RS256 or EdDSA) — fail-closed.
 
-- JWKS is loaded once at startup from a mounted file (INSURANCE_OIDC_JWKS_PATH)
+- JWKS is loaded at startup from a mounted file (INSURANCE_OIDC_JWKS_PATH)
   or fetched from INSURANCE_OIDC_JWKS_URL; unreadable/malformed JWKS aborts
-  boot when OIDC is configured.
+  boot when OIDC is configured. An unknown token ``kid`` triggers one
+  rate-limited refresh (key rotation) before rejection; a failed refresh
+  keeps the last good key set.
 - When OIDC is NOT configured, authenticated routes return 503
   (capabilities registry reports ``auth.oidc`` unavailable); there is no
   fail-open anonymous path.
@@ -54,12 +56,23 @@ def _rsa_from_jwk(jwk: dict[str, Any]) -> RSAPublicKey:
 
 
 class JwksKeyring:
-    """Startup-loaded JWKS. Fail-closed: any load defect aborts boot."""
+    """Startup-loaded JWKS. Fail-closed: any load defect aborts boot.
 
-    def __init__(self, keys: dict[str, Any]) -> None:
+    Key rotation: an unknown ``kid`` triggers ONE refresh from the JWKS
+    source (file or URL) before the token is rejected, so rotating the
+    signing key no longer takes the service down until restart. Refreshes
+    are rate-limited (``_REFRESH_MIN_INTERVAL_S``) so a flood of bogus kids
+    cannot hammer the IdP, and a failed refresh keeps serving the last
+    good key set (never fails open, never wipes the keyring)."""
+
+    _REFRESH_MIN_INTERVAL_S = 30.0
+
+    def __init__(self, keys: dict[str, Any], settings: Settings | None = None) -> None:
         if not keys:
             raise AuthError("jwks-empty", "JWKS contains no usable keys")
         self._keys = keys
+        self._settings = settings
+        self._last_refresh = 0.0
 
     @classmethod
     def load(cls, settings: Settings) -> JwksKeyring:
@@ -89,7 +102,24 @@ class JwksKeyring:
                     keys[kid] = ("EdDSA", Ed25519PublicKey.from_public_bytes(_b64u(jwk["x"])))
             except Exception as exc:
                 raise AuthError("jwks-unavailable", f"malformed key {kid}: {exc}") from exc
-        return cls(keys)
+        return cls(keys, settings)
+
+    def refresh(self) -> bool:
+        """Re-load the JWKS from its source (kid rotation). Rate-limited;
+        on any load failure the current key set is retained. Returns True
+        only when a fresh set was loaded."""
+        if self._settings is None:
+            return False
+        now = time.monotonic()
+        if now - self._last_refresh < self._REFRESH_MIN_INTERVAL_S:
+            return False
+        self._last_refresh = now
+        try:
+            fresh = type(self).load(self._settings)
+        except Exception:
+            return False
+        self._keys = fresh._keys
+        return True
 
     def resolve(self, kid: str) -> tuple[str, Any]:
         entry = self._keys.get(kid)
@@ -105,7 +135,13 @@ def verify_bearer(token: str, keyring: JwksKeyring, settings: Settings) -> Ident
         raise AuthError("malformed-token")
     header = json.loads(_b64u(parts[0]))
     payload = json.loads(_b64u(parts[1]))
-    alg, key = keyring.resolve(header.get("kid", ""))
+    try:
+        alg, key = keyring.resolve(header.get("kid", ""))
+    except AuthError as exc:
+        # Key rotation: refresh the JWKS once before rejecting the kid.
+        if exc.reason != "unknown-kid" or not keyring.refresh():
+            raise
+        alg, key = keyring.resolve(header.get("kid", ""))
     if header.get("alg") != alg:
         raise AuthError("unsupported-alg", repr(header.get("alg")))
     signature = _b64u(parts[2])
