@@ -12,7 +12,7 @@ import secrets
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from insurance.models import (
@@ -64,10 +64,27 @@ async def file_fnol(
     the claimed amount can never exceed the insured value."""
     if policy.status != "ACTIVE":
         raise ClaimError("policy-not-active", f"policy is {policy.status}")
+    # Lock the policy row so concurrent FNOLs serialize on the aggregate cap.
+    await session.execute(select(Policy.id).where(Policy.id == policy.id).with_for_update())
+    await session.refresh(policy)
     if not (policy.inception_at <= loss_occurred_at <= policy.expiry_at):
         raise ClaimError("loss-outside-cover", "loss did not occur within the cover window")
     if claimed_kobo <= 0 or claimed_kobo > policy.insured_value_kobo:
         raise ClaimError("amount-out-of-range", "claimed amount must be in (0, insured value]")
+    # Per-policy aggregate cap: the sum of claimed amounts across all
+    # non-rejected claims can never exceed the insured value.
+    aggregate = (
+        await session.execute(
+            select(func.coalesce(func.sum(Claim.claimed_kobo), 0)).where(
+                Claim.policy_id == policy.id, Claim.status != "REJECTED"
+            )
+        )
+    ).scalar_one()
+    if int(aggregate) + claimed_kobo > policy.insured_value_kobo:
+        raise ClaimError(
+            "aggregate-cap-exceeded",
+            "aggregate claims would exceed the insured value",
+        )
     product_kind = (
         await session.execute(select(Policy.family_code).where(Policy.id == policy.id))
     ).scalar_one()
@@ -187,6 +204,16 @@ async def approve_settlement(session: AsyncSession, *, claim: Claim, principal: 
         raise ClaimError("bad-state", f"claim is {claim.status}, not SETTLEMENT_PENDING")
     if principal == claim.settlement_proposed_by:
         raise ClaimError("dual-control-violation", "settlement approver must differ from proposer")
+    # No claims payable before the premium is actually received: settlement
+    # (DR claims:payable) is blocked until an applied premium receipt has
+    # stamped policy.premium_paid_at.
+    policy = (
+        await session.execute(select(Policy).where(Policy.id == claim.policy_id))
+    ).scalar_one()
+    if policy.premium_paid_at is None:
+        raise ClaimError(
+            "premium-unpaid", "settlement blocked until the premium receipt is applied"
+        )
     reference = f"settlement:{claim.claim_ref}"
     journal = await post_journal(
         session,
