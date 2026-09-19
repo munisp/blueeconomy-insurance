@@ -71,3 +71,13 @@ ruff check src tests && mypy src
 
 Configuration is 12-factor env-only (`INSURANCE_*`); see `src/insurance/config.py`.
 Secrets never have defaults and are never committed.
+
+## Reserved schema note (Phase 20)
+
+Migration 0001 creates `principals` and `processed_events` tables that no
+code reads or writes (a shared copy-pasted skeleton; `processed_events` was
+the idempotency table for an event consumer that does not exist in this
+repo). The tables are retained for audit history and their seed rows remain
+fixtures only; the unused ORM classes (`Principal`, `ProcessedEvent`,
+`PolicySerialCounter` — the table is maintained via raw SQL in
+`services/lifecycle.py`) were removed in Phase 20.
