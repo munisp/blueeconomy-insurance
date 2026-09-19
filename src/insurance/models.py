@@ -38,19 +38,6 @@ class Base(DeclarativeBase):
 # ---------------------------------------------------------------- principals
 
 
-class Principal(Base):
-    """Platform identity resolved from a verified OIDC token."""
-
-    __tablename__ = "principals"
-    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    subject: Mapped[str] = mapped_column(String(256), unique=True)  # OIDC sub
-    display_name: Mapped[str] = mapped_column(String(256), default="")
-    tenant: Mapped[str] = mapped_column(String(128), default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
-
-
-# ----------------------------------------------------- product catalogue
-
 
 PRODUCT_KINDS = (
     "marine-cargo-single",      # single-transit cargo
@@ -214,15 +201,6 @@ class BindDecision(Base):
 
 POLICY_STATUSES = ("ACTIVE", "SUSPENDED", "LAPSED", "CANCELLED")
 
-
-class PolicySerialCounter(Base):
-    """Atomic policy-number sequence claims (INSERT ... ON CONFLICT +
-    UPDATE ... RETURNING in one transaction)."""
-
-    __tablename__ = "policy_serial_counters"
-    family_code: Mapped[str] = mapped_column(String(3), primary_key=True)
-    year: Mapped[int] = mapped_column(Integer, primary_key=True)
-    next_sequence: Mapped[int] = mapped_column(BigInteger, default=0)
 
 
 class Policy(Base):
@@ -513,9 +491,3 @@ class StatusListSnapshot(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
-class ProcessedEvent(Base):
-    """Inbound envelope dedupe (consumer replay killer)."""
-
-    __tablename__ = "processed_events"
-    event_id: Mapped[str] = mapped_column(String(128), primary_key=True)
-    processed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
